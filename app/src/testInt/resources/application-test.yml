@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: adminachu
+  datasource:
+    url: # dynamic property
+    username: # dynamic property
+    password: # dynamic property
+  flyway:
+    enabled: true
+    url: # dynamic property
+    user: # dynamic property
+    password: # dynamic property
+    locations: classpath:db/migration
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method, alpha
+
+logging:
+  level:
+    root: off

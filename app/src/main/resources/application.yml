@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: adminachu
+  datasource:
+    url: ${POSTGRES_URL}${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  flyway:
+    enabled: true
+    url: ${POSTGRES_URL}${POSTGRES_DB}
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    locations: classpath:db/migration
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method
+
+logging:
+  level:
+    root: info
+  file:
+    name: adminachu.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus, logfile
+    jmx:
+      exposure:
+        include: "*"
+  jmx:
+    metrics:
+      export:
+        domain: metrics
+        enabled: true
