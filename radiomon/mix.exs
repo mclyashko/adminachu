@@ -12,7 +12,14 @@ defmodule RadioMon.MixProject do
   defp deps do
     [
       {:ecto_sql, "~> 3.11.0"},
-      {:postgrex, "~> 0.17.0"}
+      {:postgrex, "~> 0.17.0"},
+      {:id3v2, "~> 0.1.2"},
+      {:phoenix, "~> 1.5"},
+      {:jason, "~> 1.2"},
+      {:phoenix_html, "~> 3.0"},
+      {:phoenix_view, "~> 2.0"},
+      {:plug_cowboy, "~> 2.5"},
+      {:phoenix_live_reload, "~> 1.3"}
     ]
   end
 
