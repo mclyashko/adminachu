@@ -19,7 +19,8 @@ defmodule RadioMon.MixProject do
       {:phoenix_html, "~> 3.0"},
       {:phoenix_view, "~> 2.0"},
       {:plug_cowboy, "~> 2.5"},
-      {:phoenix_live_reload, "~> 1.3"}
+      {:phoenix_live_reload, "~> 1.3"},
+      {:cors_plug, "~> 3.0"}, # надо? см. plug CORSPlug
     ]
   end
 

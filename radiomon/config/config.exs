@@ -20,3 +20,6 @@ config :radio_mon, RadioMonWeb.Endpoint,
       ~r{lib/web/template/.*(eex)$}
     ]
   ]
+
+config :radio_mon, RadioMon.Processor,
+  threshold: 10_000

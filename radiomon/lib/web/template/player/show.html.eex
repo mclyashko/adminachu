@@ -3,5 +3,53 @@
 <title>RadioMon</title>
 <body>
 <h1>RadioMon</h1>
+<script>
+// xhr("/current_audio", null)
+function xhr(url, cb, opts) {
+    opts = opts || {};
+    if (!opts.httpMethod) opts.httpMethod = 'POST';
+    if (!opts.waitMinimum) opts.waitMinimum = 1000;
+    if (!opts.waitLimit) opts.waitLimit = 600000;
+    if (!opts.errorCount) opts.errorCount = 0;
+    if (!opts.request) {
+        opts.request = new XMLHttpRequest();
+        opts.onabort = function (event) {
+            console.debug('xhr abort', event, opts);
+        };
+        opts.request.onerror = function (event) {
+            console.debug('xhr error', event, opts);
+            opts.errorCount++;
+            xhr(url, cb, opts);
+        };
+        opts.request.onload = function (event) {
+            console.debug('xhr load', event, opts);
+            if (opts.request.status >= 200 && opts.request.status < 300) {
+                var response =  JSON.parse(opts.request.responseText);
+                console.debug('xhr load success', event, opts, response);
+            } else {
+                console.debug('xhr load error', event, opts);
+                opts.errorCount++;
+                xhr(url, cb, opts);
+            }
+        };
+        opts.request.ontimeout = function (event) {
+            console.debug('xhr timeout', event, opts);
+            opts.errorCount++;
+            xhr(url, cb, opts);
+        }
+    }
+    var maxWait = opts.errorCount ?
+        2 ** (opts.errorCount - 1) * opts.waitMinimum :
+        0;
+    if (maxWait > opts.waitLimit) maxWait = opts.waitLimit;
+    var wait = Math.random() * maxWait;
+    console.debug('xhr wait', opts, maxWait, wait)
+    setTimeout(function () {
+        console.debug('xhr sent', opts);
+        opts.request.open(opts.httpMethod, url);
+        opts.request.send(opts.body);
+    }, wait);
+}
+</script>
 </body>
 </html>
