@@ -16,11 +16,12 @@ defmodule RadioMon.Processor do
       |> Broadcast.remaining()
     last_play_audio = last_play.audio
       |> Audio.duration()
-    case last_play do
-      nil -> next_audio_play()
-      last_play when last_play.remaining < threshold -> next_audio_play()
-      last_play -> last_play
-        |> Map.put(:audio, last_play_audio)
+    if is_nil(last_play) or last_play.remaining < threshold do
+      last_ended = Broadcast.ended(last_play)
+      next_audio_play(last_ended)
+    else
+      last_play
+      |> Map.put(:audio, last_play_audio)
     end
   end
 
@@ -31,8 +32,9 @@ defmodule RadioMon.Processor do
     end
   end
 
-  def next_audio_play do
-    # needs gap
+  def next_audio_play(last_ended) do
+    env = fetch_env()
+    gap = Keyword.fetch!(env, gap)
     sequence_item =
       RadioMon.Processor.Sequence.first()
       |> Repo.one()
@@ -43,7 +45,7 @@ defmodule RadioMon.Processor do
     audio_item = sequence_item.audio
       |> Audio.duration()
     %Broadcast{}
-    |> Broadcast.changeset(%{streamed_at: DateTime.utc_now()}, audio_item)
+    |> Broadcast.changeset(%{streamed_at: DateTime.add(last_ended, gap, :millisecond)}, audio_item)
     |> Repo.insert!()
     |> Broadcast.remaining()
   end

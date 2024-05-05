@@ -99,7 +99,7 @@ audioPlayer.addEventListener('canplaythrough', function (event) {
     offset = offset < 0 ? offset : 0;
     setTimeout(function () {
         audioPlayer.play();
-    }, offset);
+    }, -offset);
 });
 audioPlayer.addEventListener('play', function (event) {
     console.debug('audio play', event)

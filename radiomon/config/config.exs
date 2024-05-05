@@ -22,7 +22,8 @@ config :radio_mon, RadioMonWeb.Endpoint,
   ]
 
 config :radio_mon, RadioMon.Processor,
-  threshold: 10_000
+  threshold: 10_000,
+  gap: 3_000
 
 config :radio_mon, RadioMon.Processor.Media,
   base_url: "/media/"
