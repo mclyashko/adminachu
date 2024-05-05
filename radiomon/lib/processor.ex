@@ -34,7 +34,7 @@ defmodule RadioMon.Processor do
 
   def next_audio_play(last_ended) do
     env = fetch_env()
-    gap = Keyword.fetch!(env, gap)
+    gap = Keyword.fetch!(env, :gap)
     sequence_item =
       RadioMon.Processor.Sequence.first()
       |> Repo.one()
