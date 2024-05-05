@@ -4,6 +4,8 @@ defmodule RadioMon.Processor.Audio do
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
 
+  alias RadioMon.Repo
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "audio" do
     field :name, :string
@@ -29,6 +31,14 @@ defmodule RadioMon.Processor.Audio do
   end
 
   @doc """
+  Query to get audio by name
+  """
+  def by_name(name) do
+    from a in __MODULE__,
+      where: a.name == ^name
+  end
+
+  @doc """
   Calculate the duration field of the struct.
   """
   def duration(struct) do
@@ -36,5 +46,10 @@ defmodule RadioMon.Processor.Audio do
     %{"TLEN" => tlen} = tag
     tlen_integer = String.to_integer(tlen)
     Map.put(struct, :duration, tlen_integer)
+  end
+
+  def get_audio_data(file_name) do
+    by_name(file_name)
+      |> Repo.one()
   end
 end

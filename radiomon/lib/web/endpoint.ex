@@ -6,6 +6,7 @@ defmodule RadioMonWeb.Endpoint do
     plug Phoenix.CodeReloader
     plug Phoenix.LiveReloader
   end
+  plug Plug.Static, at: "/media", from: "priv/static"
   plug Plug.Parsers, parsers: [:urlencoded]
   plug RadioMonWeb.Router
 end
