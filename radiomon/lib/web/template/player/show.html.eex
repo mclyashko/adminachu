@@ -116,6 +116,7 @@ button {
 <script>
 var audioRemaining = 0;
 var audioRemainingInterval;
+var playing = false;
 audioPlayer.addEventListener('abort', function(event) {
     console.debug('audio player abort', event)
     audioStatusData.textContent = 'Прервано';
@@ -138,7 +139,8 @@ audioPlayer.addEventListener('loadstart', function(event) {
 });
 audioPlayer.addEventListener('pause', function(event) {
     console.debug('audio player pause', event)
-    audioStatusData.textContent = 'Пауза';
+    playing = false;
+    audioStatusData.textContent = 'Не проигрывается';
 });
 audioPlayer.addEventListener('waiting', function(event) {
     console.debug('audio player waiting', event)
@@ -151,11 +153,14 @@ audioPlayer.addEventListener('canplaythrough', function (event) {
     offset = offset < 0 ? offset : 0;
     setTimeout(function () {
         playButton.classList.add('blink');
-        audioPlayer.play();
+        if (playing) {
+            audioPlayer.play();
+        }
     }, -offset);
 });
 audioPlayer.addEventListener('play', function (event) {
     console.debug('audio play', event)
+    playing = true
     audioStatusData.textContent = 'Проигрывается';
     playButton.classList.remove('blink');
     this.currentTime = audioPlayer.duration - audioRemaining / 1000;
