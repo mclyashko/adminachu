@@ -35,6 +35,10 @@ defmodule RadioMon.Processor do
   def next_audio_play(last_ended) do
     env = fetch_env()
     gap = Keyword.fetch!(env, :gap)
+    started =
+      [DateTime.utc_now(), last_ended]
+      |> Enum.max()
+      |> DateTime.add(gap, :millisecond)
     sequence_item =
       RadioMon.Processor.Sequence.first()
       |> Repo.one()
@@ -45,7 +49,7 @@ defmodule RadioMon.Processor do
     audio_item = sequence_item.audio
       |> Audio.duration()
     %Broadcast{}
-    |> Broadcast.changeset(%{streamed_at: DateTime.add(last_ended, gap, :millisecond)}, audio_item)
+    |> Broadcast.changeset(%{streamed_at: started}, audio_item)
     |> Repo.insert!()
     |> Broadcast.remaining()
   end

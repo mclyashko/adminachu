@@ -47,6 +47,10 @@ h1, .data {
 .help {
     color: hsla(228, 87%, 72%, 90%);
 }
+button {
+    background-color: hsla(51, 95%, 57%, 90%);
+    color: black;
+}
 a {
     color: hsla(174, 82%, 61%, 90%);
 }
@@ -54,7 +58,7 @@ a {
     font-family: "IBM Plex Mono";
     src: url("/media/IBMPlexMono-Regular.ttf") format("truetype");
 }
-html {
+html, button {
     font-family: "IBM Plex Mono", monospace;
     font-size: 16px;
 }
@@ -69,6 +73,24 @@ section h2 {
     font-size: 1rem;
     text-decoration: underline;
 }
+button {
+    border: none;
+    padding: 0 0.7em;
+    margin: 0.3em 0;
+    border-radius: 0;
+}
+@-webkit-keyframes blink {
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes blink {
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.blink {
+    -webkit-animation: blink 2s cubic-bezier(0, 1, 0, 1) infinite;
+    animation: blink 2s cubic-bezier(0, 1, 0, 1) infinite;
+}
 </style>
 <body>
 
@@ -81,8 +103,9 @@ section h2 {
 
 <section id = audio>
 <audio id = audioPlayer hidden></audio>
-<p><button id = playButton>▶ИГРАТЬ!</button>
-    <span id = audioPlayerRemainingData></span> <span id = audioRemainingData></span>
+<p><button id = playButton>▶ ИГРАТЬ!</button>
+    <span id = audioRemainingData></span>
+    <span id = audioStatusData></span>
 <p><span>Название:</span>
     <span id = audioName class="data"></span><br>
 <span>Описание:</span>
@@ -93,21 +116,49 @@ section h2 {
 <script>
 var audioRemaining = 0;
 var audioRemainingInterval;
+audioPlayer.addEventListener('abort', function(event) {
+    console.debug('audio player abort', event)
+    audioStatusData.textContent = 'Прервано';
+});
+audioPlayer.addEventListener('emptied', function(event) {
+    console.debug('audio player emptied', event)
+    audioStatusData.textContent = 'Загрузка...';
+});
+audioPlayer.addEventListener('ended', function(event) {
+    console.debug('audio player ended', event)
+    audioStatusData.textContent = 'Синхронизация...';
+});
+audioPlayer.addEventListener('error', function(event) {
+    console.debug('audio player error', event)
+    audioStatusData.textContent = 'Ошибка...';
+});
+audioPlayer.addEventListener('loadstart', function(event) {
+    console.debug('audio player load start', event)
+    audioStatusData.textContent = 'Загрузка...';
+});
+audioPlayer.addEventListener('pause', function(event) {
+    console.debug('audio player pause', event)
+    audioStatusData.textContent = 'Пауза';
+});
+audioPlayer.addEventListener('waiting', function(event) {
+    console.debug('audio player waiting', event)
+    audioStatusData.textContent = 'Ожидание...';
+});
 audioPlayer.addEventListener('canplaythrough', function (event) {
-    console.debug('audio can play trhrough', event)
+    console.debug('audio can play through', event)
+    audioStatusData.textContent = 'Ожидание...';
     var offset = this.duration - this.audioRemaining / 1000;
     offset = offset < 0 ? offset : 0;
     setTimeout(function () {
+        playButton.classList.add('blink');
         audioPlayer.play();
     }, -offset);
 });
 audioPlayer.addEventListener('play', function (event) {
     console.debug('audio play', event)
+    audioStatusData.textContent = 'Проигрывается';
+    playButton.classList.remove('blink');
     this.currentTime = audioPlayer.duration - audioRemaining / 1000;
-});
-audioPlayer.addEventListener('timeupdate', function (event) {
-    var remaining = this.duration - this.currentTime
-    audioPlayerRemainingData.textContent = formatDuration(remaining);
 });
 playButton.addEventListener('click', function (event) {
     console.debug('play clicked', event)
