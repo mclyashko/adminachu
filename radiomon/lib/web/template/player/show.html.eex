@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta name=viewport content="initial-scale=1">
 <title>RadioMon</title>
 <style>
 h1, h2 {
@@ -91,6 +92,19 @@ button {
     -webkit-animation: blink 2s cubic-bezier(0, 1, 0, 1) infinite;
     animation: blink 2s cubic-bezier(0, 1, 0, 1) infinite;
 }
+@media (max-width: 40em) {
+    header {
+        position: static;
+        width: auto;
+    }
+    #audio {
+        position: static;
+        width: auto;
+    }
+    #backgroundImage {
+        z-index: -100;
+    }
+}
 </style>
 <body>
 
@@ -102,7 +116,7 @@ button {
 </header>
 
 <section id = audio>
-<audio id = audioPlayer hidden></audio>
+<audio id = audioPlayer autoplay hidden></audio>
 <p><button id = playButton>▶ ИГРАТЬ!</button>
     <span id = audioRemainingData></span>
     <span id = audioStatusData></span>
@@ -127,6 +141,7 @@ audioPlayer.addEventListener('emptied', function(event) {
 });
 audioPlayer.addEventListener('ended', function(event) {
     console.debug('audio player ended', event)
+    playing = true
     audioStatusData.textContent = 'Синхронизация...';
 });
 audioPlayer.addEventListener('error', function(event) {
@@ -142,11 +157,7 @@ audioPlayer.addEventListener('pause', function(event) {
     playing = false;
     audioStatusData.textContent = 'Не проигрывается';
 });
-audioPlayer.addEventListener('waiting', function(event) {
-    console.debug('audio player waiting', event)
-    audioStatusData.textContent = 'Ожидание...';
-});
-audioPlayer.addEventListener('canplaythrough', function (event) {
+audioPlayer.addEventListener('loadedmetadata', function (event) {
     console.debug('audio can play through', event)
     audioStatusData.textContent = 'Ожидание...';
     var offset = this.duration - this.audioRemaining / 1000;
