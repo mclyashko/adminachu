@@ -14,12 +14,13 @@ defmodule RadioMon.Processor do
       Broadcast.last()
       |> Repo.one()
       |> Broadcast.remaining()
-    last_play_audio = last_play.audio
-      |> Audio.duration()
     if is_nil(last_play) or last_play.remaining < threshold do
       last_ended = Broadcast.ended(last_play)
       next_audio_play(last_ended)
     else
+      last_play_audio = last_play.audio
+      |> Audio.duration()
+
       last_play
       |> Map.put(:audio, last_play_audio)
     end

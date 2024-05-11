@@ -48,6 +48,10 @@ defmodule RadioMon.Processor.Broadcast do
     Map.put(struct, :remaining, remaining)
   end
 
+  def ended(struct) when struct == nil do
+    DateTime.utc_now()
+  end
+
   def ended(struct) do
     calculated_audio =
       struct.audio

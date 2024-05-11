@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta name=viewport content="initial-scale=1">
+<link rel=icon href="/media/icon.jpg">
 <title>RadioMon</title>
 <style>
 h1, h2 {
@@ -31,6 +32,7 @@ header {
     right: 0;
     bottom: 0;
     left: 0;
+    z-index: -1;
     background-size: cover;
     background-position: center;
     background-image: url("/media/background.gif");
@@ -96,13 +98,27 @@ button {
     header {
         position: static;
         width: auto;
+        padding: 0;
     }
     #audio {
         position: static;
         width: auto;
+        padding: 0;
     }
     #backgroundImage {
         z-index: -100;
+    }
+    section + section {
+        margin-top: 1em;
+    }
+    #playButton {
+        display: inline-block;
+        width: 100%;
+        height: 3em;
+    }
+    p {
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 </style>

@@ -1,0 +1,17 @@
+FROM elixir:1.16.2-otp-25 as backend
+ARG REPO_USERNAME
+ENV REPO_USERNAME=${REPO_USERNAME}
+ARG REPO_PASSWORD
+ENV REPO_PASSWORD=${REPO_PASSWORD}
+ARG REPO_URL
+ENV REPO_URL=${REPO_URL}
+ARG PORT
+ENV PORT=${PORT}
+ENV MIX_ENV=prod
+WORKDIR /application
+COPY ./radiomon /application/
+RUN apt-get update && apt-get -y install inotify-tools
+RUN mix local.hex --force && mix deps.get --only $MIX_ENV && mix compile
+ENTRYPOINT ["mix", \
+            "phx.server" \
+            ]

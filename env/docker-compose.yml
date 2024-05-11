@@ -32,13 +32,12 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_URL: ${POSTGRES_URL}
+      POSTGRES_URL: jdbc:${POSTGRES_URL}
       POSTGRES_DB: ${POSTGRES_DB}
     networks:
       - adminachu-network
     ports:
       - "8080:8080"
-      - "9095:9095"
     restart: "no"
     healthcheck:
       test: curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1
@@ -48,14 +47,34 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-#  adminer:
-#    container_name: adminer
-#    image: adminer:4.8.1
-#    networks:
-#      - adminachu-network
-#    ports:
-#      - "9090:8080"
-#    restart: "no"
-#    depends_on:
-#      adminachu:
-#        condition: service_healthy
+
+  radiomon:
+    container_name: radiomon
+    build:
+      context: ../
+      dockerfile: ./env/radiomon/DockerfileRadiomon
+      args:
+        REPO_USERNAME: ${POSTGRES_USER}
+        REPO_PASSWORD: ${POSTGRES_PASSWORD}
+        REPO_URL: ${POSTGRES_URL}${POSTGRES_DB}
+        PORT: 80
+    networks:
+      - adminachu-network
+    ports:
+      - "80:80"
+    restart: "no"
+    depends_on:
+      adminachu:
+        condition: service_healthy
+
+  adminer:
+    container_name: adminer
+    image: adminer:4.8.1
+    networks:
+      - adminachu-network
+    ports:
+      - "9090:8080"
+    restart: "no"
+    depends_on:
+      adminachu:
+        condition: service_healthy

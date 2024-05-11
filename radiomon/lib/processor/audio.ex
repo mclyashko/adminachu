@@ -42,7 +42,8 @@ defmodule RadioMon.Processor.Audio do
   Calculate the duration field of the struct.
   """
   def duration(struct) do
-    tag = ID3v2.frames(struct.file)
+    binary_data = Base.decode16!(String.replace(struct.file, ~r/^0x/, ""))
+    tag = ID3v2.frames(binary_data)
     %{"TLEN" => tlen} = tag
     tlen_integer = String.to_integer(tlen)
     Map.put(struct, :duration, tlen_integer)
