@@ -50,7 +50,8 @@ defmodule RadioMon.Processor.Audio do
   end
 
   def get_audio_data(file_name) do
-    by_name(file_name)
+    audio = by_name(file_name)
       |> Repo.one()
+    Base.decode16!(String.replace(audio.file, ~r/^0x/, ""))
   end
 end

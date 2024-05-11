@@ -16,6 +16,6 @@ defmodule RadioMonWeb.PlayerController do
     file_name = String.replace(file_name_with_suffix, ".mp3", "")
     conn
     |> put_resp_content_type("audio/mpeg")
-    |> send_resp(200, Audio.get_audio_data(file_name).file)
+    |> send_resp(200, Audio.get_audio_data(file_name))
   end
 end
