@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<meta name=viewport content="initial-scale=1">
+<link rel=icon href="/media/icon.jpg">
+<title>RadioMon</title>
+<style>
+h1, h2 {
+    margin: 0;
+}
+p {
+    margin: 0;
+}
+header {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 50%;
+    box-sizing: border-box;
+    text-align: right;
+    padding: 0.5rem 0.5rem 0 0;
+}
+#audio {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 50%;
+    box-sizing: border-box;
+    padding: 0 0 0.5rem 0.5rem;
+}
+#backgroundImage {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    background-image: url("/media/background.gif");
+    -webkit-filter: blur(3px) brightness(1.5);
+    filter: blur(3px) brightness(1.5);
+    box-shadow: inset 0 0 45rem black;
+    background-color: darkgray;
+}
+body {
+    color: hsla(125, 73%, 49%, 90%);
+}
+h1, .data {
+    color: hsla(0, 0%, 100%, 90%);
+}
+.help {
+    color: hsla(228, 87%, 72%, 90%);
+}
+button {
+    background-color: hsla(51, 95%, 57%, 90%);
+    color: black;
+}
+a {
+    color: hsla(174, 82%, 61%, 90%);
+}
+@font-face {
+    font-family: "IBM Plex Mono";
+    src: url("/media/IBMPlexMono-Regular.ttf") format("truetype");
+}
+html, button {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 16px;
+}
+@font-face {
+    font-family: "IBM Plex Sans Condensed";
+    src: url("/media/IBMPlexSansCondensed-Regular.ttf") format("truetype");
+}
+h1 {
+    font-family: "IBM Plex Sans Condensed", sans-serif;
+}
+section h2 {
+    font-size: 1rem;
+    text-decoration: underline;
+}
+button {
+    border: none;
+    padding: 0 0.7em;
+    margin: 0.3em 0;
+    border-radius: 0;
+}
+@-webkit-keyframes blink {
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes blink {
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.blink {
+    -webkit-animation: blink 2s cubic-bezier(0, 1, 0, 1) infinite;
+    animation: blink 2s cubic-bezier(0, 1, 0, 1) infinite;
+}
+@media (max-width: 40em) {
+    header {
+        position: static;
+        width: auto;
+        padding: 0;
+    }
+    #audio {
+        position: static;
+        width: auto;
+        padding: 0;
+    }
+    #backgroundImage {
+        z-index: -100;
+    }
+    section + section {
+        margin-top: 1em;
+    }
+    #playButton {
+        display: inline-block;
+        width: 100%;
+        height: 3em;
+    }
+    p {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+</style>
+<body>
+
+<div id = backgroundImage></div>
+
+<header>
+<h1>RadioMon</h1>
+<p class="help">Музыка - это универсальный язык</p>
+</header>
+
+<section id = audio>
+<audio id = audioPlayer autoplay hidden></audio>
+<p><button id = playButton>▶ ИГРАТЬ!</button>
+    <span id = audioRemainingData></span>
+    <span id = audioStatusData></span>
+<p><span>Название:</span>
+    <span id = audioName class="data"></span><br>
+<span>Описание:</span>
+    <span id = audioDescription class="data"></span><br>
+<span hidden>URL:</span>
+    <span hidden><a id = audioUrl hidden></a></span><br hidden>
+</section>
+<script>
+var audioRemaining = 0;
+var audioRemainingInterval;
+var playing = false;
+audioPlayer.addEventListener('abort', function(event) {
+    console.debug('audio player abort', event)
+    audioStatusData.textContent = 'Прервано';
+});
+audioPlayer.addEventListener('emptied', function(event) {
+    console.debug('audio player emptied', event)
+    audioStatusData.textContent = 'Загрузка...';
+});
+audioPlayer.addEventListener('ended', function(event) {
+    console.debug('audio player ended', event)
+    playing = true
+    audioStatusData.textContent = 'Синхронизация...';
+});
+audioPlayer.addEventListener('error', function(event) {
+    console.debug('audio player error', event)
+    audioStatusData.textContent = 'Ошибка...';
+});
+audioPlayer.addEventListener('loadstart', function(event) {
+    console.debug('audio player load start', event)
+    audioStatusData.textContent = 'Загрузка...';
+});
+audioPlayer.addEventListener('pause', function(event) {
+    console.debug('audio player pause', event)
+    playing = false;
+    audioStatusData.textContent = 'Не проигрывается';
+});
+audioPlayer.addEventListener('loadedmetadata', function (event) {
+    console.debug('audio can play through', event)
+    audioStatusData.textContent = 'Ожидание...';
+    var offset = this.duration - this.audioRemaining / 1000;
+    offset = offset < 0 ? offset : 0;
+    setTimeout(function () {
+        playButton.classList.add('blink');
+        if (playing) {
+            audioPlayer.play();
+        }
+    }, -offset);
+});
+audioPlayer.addEventListener('play', function (event) {
+    console.debug('audio play', event)
+    playing = true
+    audioStatusData.textContent = 'Проигрывается';
+    playButton.classList.remove('blink');
+    this.currentTime = audioPlayer.duration - audioRemaining / 1000;
+});
+playButton.addEventListener('click', function (event) {
+    console.debug('play clicked', event)
+    audioPlayer.play();
+});
+function currentAudio() {
+    xhr("/current_audio", function (response){
+        setTimeout(function () {
+            currentAudio();
+        }, response.remaining);
+        var receivedTime = Date.now();
+        audioRemaining = response.remaining;
+        clearInterval(audioRemainingInterval);
+        audioRemainingInterval = setInterval(function () {
+            var metadataAge = Date.now() - receivedTime;
+            audioRemaining = response.remaining - metadataAge;
+            audioRemainingData.textContent = formatDuration(audioRemaining / 1000);
+        }, 1000);
+        audioPlayer.setAttribute('src', response.file_url)
+        audioName.textContent = response.name;
+        audioDescription.textContent = response.description;
+        audioUrl.textContent = response.file_url;
+        audioUrl.setAttribute('href', response.file_url);
+    });
+}
+currentAudio();
+function formatDuration(duration) {
+    var seconds = Math.abs(Math.round(duration));
+    var minutes = Math.trunc(seconds / 60);
+    seconds = seconds % 60;
+    seconds = seconds.toString()
+    while (seconds.length < 2) seconds = '0' + seconds;
+    return minutes + 'м' + seconds + 'с';
+}
+// xhr("/current_audio", null)
+// xhr("/media/La.mp3", null, {httpMethod: "GET"});
+function xhr(url, cb, opts) {
+    opts = opts || {};
+    if (!opts.httpMethod) opts.httpMethod = 'POST';
+    if (!opts.waitMinimum) opts.waitMinimum = 1000;
+    if (!opts.waitLimit) opts.waitLimit = 600000;
+    if (!opts.errorCount) opts.errorCount = 0;
+    if (!opts.request) {
+        opts.request = new XMLHttpRequest();
+        opts.onabort = function (event) {
+            console.debug('xhr abort', event, opts);
+        };
+        opts.request.onerror = function (event) {
+            console.debug('xhr error', event, opts);
+            opts.errorCount++;
+            xhr(url, cb, opts);
+        };
+        opts.request.onload = function (event) {
+            console.debug('xhr load', event, opts);
+            if (opts.request.status >= 200 && opts.request.status < 300) {
+                var response = JSON.parse(opts.request.responseText); // тут думать как обработать файл
+                console.debug('xhr load success', event, opts, response);
+                cb(response);
+            } else {
+                console.debug('xhr load error', event, opts);
+                opts.errorCount++;
+                xhr(url, cb, opts);
+            }
+        };
+        opts.request.ontimeout = function (event) {
+            console.debug('xhr timeout', event, opts);
+            opts.errorCount++;
+            xhr(url, cb, opts);
+        }
+    }
+    var maxWait = opts.errorCount ?
+        2 ** (opts.errorCount - 1) * opts.waitMinimum :
+        0;
+    if (maxWait > opts.waitLimit) maxWait = opts.waitLimit;
+    var wait = Math.random() * maxWait;
+    console.debug('xhr wait', opts, maxWait, wait)
+    setTimeout(function () {
+        console.debug('xhr sent', opts);
+        opts.request.open(opts.httpMethod, url);
+        opts.request.send(opts.body);
+    }, wait);
+}
+</script>
+</body>

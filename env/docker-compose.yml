@@ -4,131 +4,6 @@ networks:
   adminachu-network:
 
 services:
-#  mongodb:
-#    container_name: mongodb
-#    image: mongo:7.0.2
-#    networks:
-#      - adminachu-network
-#    volumes:
-#      - ./mongodb/mongo_data:/data/db
-#    restart: "no"
-#    healthcheck:
-#      test: mongosh --norc --quiet --host=localhost:27017 --eval "db.getMongo()"
-#      interval: 10s
-#      timeout: 30s
-#      retries: 5
-#  opensearch:
-#    container_name: opensearch
-#    image: opensearchproject/opensearch:2.10.0
-#    environment:
-#      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
-#      - "bootstrap.memory_lock=true"
-#      - "discovery.type=single-node"
-#      - "action.auto_create_index=false"
-#      - "plugins.security.ssl.http.enabled=false"
-#      - "plugins.security.disabled=true"
-#    networks:
-#      - adminachu-network
-#    ulimits:
-#      memlock:
-#        hard: -1
-#        soft: -1
-#      nofile:
-#        soft: 65536
-#        hard: 65536
-#    volumes:
-#      - ./opensearch/opch_data:/usr/share/opensearch/data
-#    restart: "no"
-#    healthcheck:
-#      test: curl --silent --fail localhost:9200/_cluster/health || exit 1
-#      interval: 10s
-#      timeout: 30s
-#      retries: 5
-#    depends_on:
-#      mongodb:
-#        condition: service_healthy
-#  graylog:
-#    container_name: graylog
-#    image: graylog/graylog:5.0
-#    volumes:
-#      - ./graylog/gr_data:/usr/share/graylog/data/data
-#      - ./graylog/gr_journal:/usr/share/graylog/data/journal
-#    environment:
-#      GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/config/node-id"
-#      GRAYLOG_ROOT_USERNAME: ${GRAYLOG_ROOT_USERNAME}
-#      GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA2}
-#      GRAYLOG_USERNAME: ${GRAYLOG_USERNAME}
-#      GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
-#      GRAYLOG_HTTP_BIND_ADDRESS: "0.0.0.0:9000"
-#      GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9000/"
-#      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
-#      GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
-#    entrypoint: "/usr/bin/tini -- wait-for-it opensearch:9200 --  /docker-entrypoint.sh"
-#    networks:
-#      - adminachu-network
-#    ports:
-#      - "5044:5044/tcp"   # Beats
-#      - "5140:5140/udp"   # Syslog
-#      - "5140:5140/tcp"   # Syslog
-#      - "5555:5555/tcp"   # RAW TCP
-#      - "5555:5555/udp"   # RAW TCP
-#      - "9000:9000/tcp"   # Server API
-#      - "12201:12201/tcp" # GELF TCP
-#      - "12201:12201/udp" # GELF UDP
-#      #- "10000:10000/tcp" # Custom TCP port
-#      #- "10000:10000/udp" # Custom UDP port
-#      - "13301:13301/tcp" # Forwarder data
-#      - "13302:13302/tcp" # Forwarder config
-#    restart: "no"
-#    healthcheck:
-#      test: curl --silent -f http://127.0.0.1:9000/api
-#      interval: 10s
-#      timeout: 30s
-#      retries: 5
-#    depends_on:
-#      opensearch:
-#        condition: service_healthy
-#  prometheus:
-#    container_name: prometheus
-#    image: prom/prometheus:v2.47.0
-#    volumes:
-#      - ./prometheus/prom_config:/etc/prometheus
-#      - ./prometheus/prom_data:/prometheus
-#    networks:
-#      - adminachu-network
-#    command:
-#      - "--config.file=/etc/prometheus/prometheus.yml"
-#    restart: "no"
-#    healthcheck:
-#      test: wget -O/dev/null http://localhost:9090
-#      interval: 10s
-#      timeout: 30s
-#      retries: 5
-#    depends_on:
-#      graylog:
-#        condition: service_healthy
-#  grafana:
-#    container_name: grafana
-#    image: grafana/grafana:10.1.2
-#    volumes:
-#      - ./grafana/gf_data:/var/lib/grafana
-#      - ./grafana/gf_config:/etc/grafana/provisioning/datasources
-#    environment:
-#      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
-#      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
-#    networks:
-#      - adminachu-network
-#    ports:
-#      - "3000:3000"
-#    restart: "no"
-#    healthcheck:
-#      test: wget -O/dev/null http://localhost:3000/api/health
-#      interval: 10s
-#      timeout: 30s
-#      retries: 5
-#    depends_on:
-#      prometheus:
-#        condition: service_healthy
   postgres:
     container_name: postgres
     image: postgres:16
@@ -147,10 +22,8 @@ services:
       test: pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}
       interval: 10s
       timeout: 30s
-      retries: 5
-#    depends_on:
-#      grafana:
-#        condition: service_healthy
+      retries: 10
+
   adminachu:
     container_name: adminachu
     build:
@@ -159,30 +32,49 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_URL: ${POSTGRES_URL}
+      POSTGRES_URL: jdbc:${POSTGRES_URL}
       POSTGRES_DB: ${POSTGRES_DB}
     networks:
       - adminachu-network
     ports:
       - "8080:8080"
-      - "9095:9095"
     restart: "no"
     healthcheck:
       test: curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1
       interval: 10s
       timeout: 30s
-      retries: 5
+      retries: 10
     depends_on:
       postgres:
         condition: service_healthy
-#  adminer:
-#    container_name: adminer
-#    image: adminer:4.8.1
-#    networks:
-#      - adminachu-network
-#    ports:
-#      - "9090:8080"
-#    restart: "no"
-#    depends_on:
-#      adminachu:
-#        condition: service_healthy
+
+  radiomon:
+    container_name: radiomon
+    build:
+      context: ../
+      dockerfile: ./env/radiomon/DockerfileRadiomon
+      args:
+        REPO_USERNAME: ${POSTGRES_USER}
+        REPO_PASSWORD: ${POSTGRES_PASSWORD}
+        REPO_URL: ${POSTGRES_URL}${POSTGRES_DB}
+        PORT: 80
+    networks:
+      - adminachu-network
+    ports:
+      - "80:80"
+    restart: "no"
+    depends_on:
+      adminachu:
+        condition: service_healthy
+
+  adminer:
+    container_name: adminer
+    image: adminer:4.8.1
+    networks:
+      - adminachu-network
+    ports:
+      - "9090:8080"
+    restart: "no"
+    depends_on:
+      adminachu:
+        condition: service_healthy
