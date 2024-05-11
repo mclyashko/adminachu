@@ -22,7 +22,7 @@ services:
       test: pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}
       interval: 10s
       timeout: 30s
-      retries: 5
+      retries: 10
 
   adminachu:
     container_name: adminachu
@@ -43,7 +43,7 @@ services:
       test: curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1
       interval: 10s
       timeout: 30s
-      retries: 5
+      retries: 10
     depends_on:
       postgres:
         condition: service_healthy
