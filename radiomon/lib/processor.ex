@@ -10,13 +10,21 @@ defmodule RadioMon.Processor do
   def current_audio_play(opts \\ []) do
     opts = opts ++ fetch_env()
     threshold = Keyword.fetch!(opts, :threshold)
-    last_play =
-      Broadcast.last()
-      |> Repo.one()
-      |> Broadcast.remaining()
+    last_play = case Cachex.exists?(:audio_cache, "last_play") do
+      {:ok, true} -> {:ok, cached_last_play} = Cachex.get(:audio_cache, "last_play")
+        cached_last_play
+        |> Broadcast.remaining()
+      _ -> to_cache = Broadcast.last()
+        |> Repo.one()
+        Cachex.put(:audio_cache, "last_play", to_cache)
+        to_cache
+        |> Broadcast.remaining()
+    end
     if is_nil(last_play) or last_play.remaining < threshold do
       last_ended = Broadcast.ended(last_play)
-      next_audio_play(last_ended)
+      new_last_play = next_audio_play(last_ended)
+      Cachex.clear(:audio_cache)
+      new_last_play
     else
       last_play_audio = last_play.audio
       |> Audio.duration()
