@@ -21,6 +21,7 @@ defmodule RadioMon.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:phoenix_live_reload, "~> 1.3"},
       {:cors_plug, "~> 3.0"}, # надо? см. plug CORSPlug
+      {:cachex, "~> 3.6.0"},
     ]
   end
 

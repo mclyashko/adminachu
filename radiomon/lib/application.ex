@@ -8,7 +8,8 @@ defmodule RadioMon.Application do
       {Phoenix.PubSub, [
         name: RadioMon.PubSub,
         adapter: Phoenix.PubSub.PG2
-      ]}
+      ]},
+      {Cachex, name: :audio_cache},
     ]
     Supervisor.start_link(children, strategy: :one_for_one)
   end
